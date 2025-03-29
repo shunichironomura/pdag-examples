@@ -1,19 +1,19 @@
 from typing import Annotated, ClassVar, Literal, get_args, Mapping
 import pdag
 
-_TPolicy = Literal[
+TPolicy = Literal[
     "do-nothing", "build-opt-57", "build-opt-33-and-rebuild", "build-exp-33-and-expand"
 ]
-_TAction = Literal[
+TAction = Literal[
     "do-nothing", "build-opt-33", "build-opt-57", "tear-down", "expand", "build-exp-33"
 ]
-_TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
+TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
 
 
 class BuildingExpansionModel(pdag.Model):
-    _POLICIES: ClassVar[tuple[_TPolicy, ...]] = get_args(_TPolicy)
-    _ACTIONS: ClassVar[tuple[_TAction, ...]] = get_args(_TAction)
-    _BUILDING_STATES: ClassVar[tuple[_TBuildingState, ...]] = get_args(_TBuildingState)
+    POLICIES: ClassVar[tuple[TPolicy, ...]] = get_args(TPolicy)
+    ACTIONS: ClassVar[tuple[TAction, ...]] = get_args(TAction)
+    BUILDING_STATES: ClassVar[tuple[TBuildingState, ...]] = get_args(TBuildingState)
 
     # Exogenous parameters
     demand = pdag.RealParameter("demand", is_time_series=True, metadata={"XLRM": "X"})
@@ -23,7 +23,7 @@ class BuildingExpansionModel(pdag.Model):
     # Decision parameters
     policy = pdag.CategoricalParameter(
         "policy",
-        _POLICIES,
+        POLICIES,
         metadata={"XLRM": "L"},
     )
     rebuild_threshold = pdag.RealParameter(
@@ -38,12 +38,12 @@ class BuildingExpansionModel(pdag.Model):
     # Calculated parameters
     action = pdag.CategoricalParameter(
         "action",
-        _ACTIONS,
+        ACTIONS,
         is_time_series=True,
     )
     building_state = pdag.CategoricalParameter(
         "building_state",
-        _BUILDING_STATES,
+        BUILDING_STATES,
         is_time_series=True,
     )
     action_cost = pdag.Mapping(
@@ -59,26 +59,26 @@ class BuildingExpansionModel(pdag.Model):
     @staticmethod
     def determine_action(
         *,
-        policy: Annotated[_TPolicy, policy.ref()],
-        building_state: Annotated[_TBuildingState, building_state.ref()],
+        policy: Annotated[TPolicy, policy.ref()],
+        building_state: Annotated[TBuildingState, building_state.ref()],
         demand: Annotated[float, demand.ref()],
         rebuild_threshold: Annotated[float, rebuild_threshold.ref()],
         expand_threshold: Annotated[float, expand_threshold.ref()],
-    ) -> Annotated[_TAction, action.ref()]: ...
+    ) -> Annotated[TAction, action.ref()]: ...
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
     def state_transition_model(
         *,
-        building_state: Annotated[_TBuildingState, building_state.ref()],
-        action: Annotated[_TAction, action.ref()],
-    ) -> Annotated[_TBuildingState, building_state.ref(next=True)]: ...
+        building_state: Annotated[TBuildingState, building_state.ref()],
+        action: Annotated[TAction, action.ref()],
+    ) -> Annotated[TBuildingState, building_state.ref(next=True)]: ...
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
     def calculate_revenue(
         *,
-        building_state: Annotated[_TBuildingState, building_state.ref()],
+        building_state: Annotated[TBuildingState, building_state.ref()],
         demand: Annotated[float, demand.ref()],
         revenue_per_floor: Annotated[float, revenue_per_floor.ref()],
     ) -> Annotated[float, revenue.ref()]: ...
@@ -87,8 +87,8 @@ class BuildingExpansionModel(pdag.Model):
     @staticmethod
     def calculate_cost(
         *,
-        action: Annotated[_TAction, action.ref()],
-        action_cost: Annotated[Mapping[_TAction, float], action_cost.ref()],
+        action: Annotated[TAction, action.ref()],
+        action_cost: Annotated[Mapping[TAction, float], action_cost.ref()],
     ) -> Annotated[float, cost.ref()]: ...
 
     @pdag.relationship
