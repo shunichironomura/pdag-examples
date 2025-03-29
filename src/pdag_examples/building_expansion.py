@@ -132,7 +132,23 @@ class BuildingExpansionModel(pdag.Model):
         building_state: Annotated[TBuildingState, building_state.ref()],
         demand: Annotated[float, demand.ref()],
         revenue_per_floor: Annotated[float, revenue_per_floor.ref()],
-    ) -> Annotated[float, revenue.ref()]: ...
+    ) -> Annotated[float, revenue.ref()]:
+        match building_state:
+            case "not-built":
+                capacity = 0
+            case "opt-33":
+                capacity = 33
+            case "opt-57":
+                capacity = 57
+            case "exp-33":
+                capacity = 33
+            case "exp-57":
+                capacity = 57
+            case _:
+                raise ValueError(f"Unknown building state: {building_state}")
+
+        sales = min(capacity, demand)
+        return sales * revenue_per_floor
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
