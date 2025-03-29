@@ -11,6 +11,7 @@ TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
 
 
 class BuildingExpansionModel(pdag.Model):
+    # Enumeration of possible values for policies, actions, and building states
     POLICIES: ClassVar[tuple[TPolicy, ...]] = get_args(TPolicy)
     ACTIONS: ClassVar[tuple[TAction, ...]] = get_args(TAction)
     BUILDING_STATES: ClassVar[tuple[TBuildingState, ...]] = get_args(TBuildingState)
