@@ -5,7 +5,12 @@ TPolicy = Literal[
     "do-nothing", "build-opt-57", "build-opt-33-and-rebuild", "build-exp-33-and-expand"
 ]
 TAction = Literal[
-    "do-nothing", "build-opt-33", "build-opt-57", "tear-down", "expand", "build-exp-33"
+    "do-nothing",
+    "build-opt-33",
+    "build-opt-57",
+    "tear-down-and-build-opt-57",
+    "expand",
+    "build-exp-33",
 ]
 TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
 
@@ -64,7 +69,31 @@ class BuildingExpansionModel(pdag.Model):
         demand: Annotated[float, demand.ref()],
         rebuild_threshold: Annotated[float, rebuild_threshold.ref()],
         expand_threshold: Annotated[float, expand_threshold.ref()],
-    ) -> Annotated[TAction, action.ref()]: ...
+    ) -> Annotated[TAction, action.ref()]:
+        match policy:
+            case "do-nothing":
+                return "do-nothing"
+            case "build-opt-57":
+                if building_state == "not-built":
+                    return "build-opt-57"
+                else:
+                    return "do-nothing"
+            case "build-opt-33-and-rebuild":
+                if building_state == "not-built":
+                    return "build-opt-33"
+                elif building_state == "opt-33" and demand > rebuild_threshold:
+                    return "tear-down-and-build-opt-57"
+                else:
+                    return "do-nothing"
+            case "build-exp-33-and-expand":
+                if building_state == "not-built":
+                    return "build-exp-33"
+                elif building_state == "exp-33" and demand > expand_threshold:
+                    return "expand"
+                else:
+                    return "do-nothing"
+            case _:
+                raise ValueError(f"Unknown policy: {policy}")
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
