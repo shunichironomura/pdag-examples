@@ -156,7 +156,8 @@ class BuildingExpansionModel(pdag.Model):
         *,
         action: Annotated[TAction, action.ref()],
         action_cost: Annotated[Mapping[TAction, float], action_cost.ref()],
-    ) -> Annotated[float, cost.ref()]: ...
+    ) -> Annotated[float, cost.ref()]:
+        return action_cost[action]
 
     @pdag.relationship
     @staticmethod
