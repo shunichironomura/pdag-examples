@@ -166,4 +166,8 @@ class BuildingExpansionModel(pdag.Model):
         revenue: Annotated[list[float], revenue.ref(all_time_steps=True)],
         cost: Annotated[list[float], cost.ref(all_time_steps=True)],
         discount_rate: Annotated[float, discount_rate.ref()],
-    ) -> Annotated[float, npv.ref()]: ...
+    ) -> Annotated[float, npv.ref()]:
+        return sum(
+            (r - c) / ((1 + discount_rate) ** t)
+            for t, (r, c) in enumerate(zip(revenue, cost, strict=True))
+        )
