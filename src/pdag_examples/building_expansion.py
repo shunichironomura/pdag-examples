@@ -16,6 +16,7 @@ TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
 
 
 class BuildingExpansionModel(pdag.Model):
+    # Enumeration of possible values for policies, actions, and building states
     POLICIES: ClassVar[tuple[TPolicy, ...]] = get_args(TPolicy)
     ACTIONS: ClassVar[tuple[TAction, ...]] = get_args(TAction)
     BUILDING_STATES: ClassVar[tuple[TBuildingState, ...]] = get_args(TBuildingState)
@@ -101,7 +102,28 @@ class BuildingExpansionModel(pdag.Model):
         *,
         building_state: Annotated[TBuildingState, building_state.ref()],
         action: Annotated[TAction, action.ref()],
-    ) -> Annotated[TBuildingState, building_state.ref(next=True)]: ...
+    ) -> Annotated[TBuildingState, building_state.ref(next=True)]:
+        match action:
+            case "do-nothing":
+                return building_state
+            case "build-opt-33":
+                if building_state == "not-built":
+                    return "opt-33"
+            case "build-opt-57":
+                if building_state == "not-built":
+                    return "opt-57"
+            case "tear-down-and-build-opt-57":
+                if building_state == "opt-33":
+                    return "opt-57"
+            case "expand":
+                if building_state == "exp-33":
+                    return "exp-57"
+            case _:
+                raise ValueError(f"Unknown action: {action}")
+
+        raise ValueError(
+            f"Invalid action '{action}' for building state '{building_state}'"
+        )
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
