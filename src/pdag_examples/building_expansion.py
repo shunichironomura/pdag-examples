@@ -15,6 +15,31 @@ TAction = Literal[
 TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
 
 
+class DemandModel(pdag.Model):
+    demand = pdag.RealParameter("demand", is_time_series=True)
+    start_time = pdag.RealParameter("start_time")
+    ramp_up_time = pdag.RealParameter("ramp_up_time")
+    demand_max = pdag.RealParameter("demand_max")
+
+    @pdag.relationship
+    @staticmethod
+    def demand_model(
+        start_time: Annotated[float, start_time.ref()],
+        ramp_up_time: Annotated[float, ramp_up_time.ref()],
+        demand_max: Annotated[float, demand_max.ref()],
+        n_time_steps: Annotated[int, pdag.ExecInfo("n_time_steps")],
+    ) -> Annotated[list[float], demand.ref(all_time_steps=True)]:
+        demand: list[float] = []
+        for t in range(n_time_steps):
+            if t < start_time:
+                demand.append(0)
+            elif t < start_time + ramp_up_time:
+                demand.append(demand_max * (t - start_time) / ramp_up_time)
+            else:
+                demand.append(demand_max)
+        return demand
+
+
 class BuildingExpansionModel(pdag.Model):
     # Enumeration of possible values for policies, actions, and building states
     POLICIES: ClassVar[tuple[TPolicy, ...]] = get_args(TPolicy)
@@ -22,9 +47,87 @@ class BuildingExpansionModel(pdag.Model):
     BUILDING_STATES: ClassVar[tuple[TBuildingState, ...]] = get_args(TBuildingState)
 
     # Exogenous parameters
-    demand = pdag.RealParameter("demand", is_time_series=True, metadata={"XLRM": "X"})
-    revenue_per_floor = pdag.RealParameter("revenue_per_floor", metadata={"XLRM": "X"})
-    discount_rate = pdag.RealParameter("discount_rate", metadata={"XLRM": "X"})
+    demand_start_time = pdag.RealParameter(
+        "demand_start_time",
+        lower_bound=0,
+        upper_bound=10,
+        metadata={"XLRM": "X"},
+    )
+    demand_ramp_up_time = pdag.RealParameter(
+        "demand_ramp_up_time",
+        lower_bound=0,
+        upper_bound=10,
+        metadata={"XLRM": "X"},
+    )
+    demand_max = pdag.RealParameter(
+        "demand_max",
+        lower_bound=0,
+        upper_bound=100,
+        metadata={"XLRM": "X"},
+    )
+    # Demand is calculated in the DemandModel class
+    demand = pdag.RealParameter(
+        "demand",
+        unit="floors",
+        is_time_series=True,
+    )
+    revenue_per_floor = pdag.RealParameter(
+        "revenue_per_floor",
+        unit="USD/year/floor",
+        lower_bound=600e3,
+        upper_bound=1.5e6,
+        metadata={"XLRM": "X"},
+    )
+    discount_rate = pdag.RealParameter(
+        "discount_rate", lower_bound=0, upper_bound=0.1, metadata={"XLRM": "X"}
+    )
+    action_cost = pdag.Mapping(
+        "action_cost",
+        {
+            "do-nothing": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=0,
+                upper_bound=1,
+                metadata={"XLRM": "X"},
+            ),
+            "build-opt-33": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=150e6,
+                upper_bound=200e6,
+                metadata={"XLRM": "X"},
+            ),
+            "build-opt-57": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=300e6,
+                upper_bound=350e6,
+                metadata={"XLRM": "X"},
+            ),
+            "tear-down": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=6e6,
+                upper_bound=11e6,
+                metadata={"XLRM": "X"},
+            ),
+            "expand": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=50e6,
+                upper_bound=100e6,
+                metadata={"XLRM": "X"},
+            ),
+            "build-exp-33": pdag.RealParameter(
+                ...,
+                unit="USD",
+                lower_bound=180e6,
+                upper_bound=220e6,
+                metadata={"XLRM": "X"},
+            ),
+        },
+    )
 
     # Decision parameters
     policy = pdag.CategoricalParameter(
@@ -34,10 +137,16 @@ class BuildingExpansionModel(pdag.Model):
     )
     rebuild_threshold = pdag.RealParameter(
         "rebuild_threshold",
+        unit="floors",
+        lower_bound=10,
+        upper_bound=60,
         metadata={"XLRM": "L"},
     )
     expand_threshold = pdag.RealParameter(
         "expand_threshold",
+        unit="floors",
+        lower_bound=10,
+        upper_bound=60,
         metadata={"XLRM": "L"},
     )
 
@@ -52,13 +161,9 @@ class BuildingExpansionModel(pdag.Model):
         BUILDING_STATES,
         is_time_series=True,
     )
-    action_cost = pdag.Mapping(
-        "action_cost",
-        {action: pdag.RealParameter(...) for action in action.categories},
-    )
+
     revenue = pdag.RealParameter("revenue", is_time_series=True)
     cost = pdag.RealParameter("cost", is_time_series=True)
-    discount_rate = pdag.RealParameter("discount_rate")
     npv = pdag.RealParameter("npv")
 
     @pdag.relationship(at_each_time_step=True)
@@ -96,6 +201,11 @@ class BuildingExpansionModel(pdag.Model):
             case _:
                 raise ValueError(f"Unknown policy: {policy}")
 
+    @pdag.relationship
+    @staticmethod
+    def initial_state() -> Annotated[TBuildingState, building_state.ref(initial=True)]:
+        return "not-built"
+
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
     def state_transition_model(
@@ -112,6 +222,9 @@ class BuildingExpansionModel(pdag.Model):
             case "build-opt-57":
                 if building_state == "not-built":
                     return "opt-57"
+            case "build-exp-33":
+                if building_state == "not-built":
+                    return "exp-33"
             case "tear-down-and-build-opt-57":
                 if building_state == "opt-33":
                     return "opt-57"
@@ -124,6 +237,20 @@ class BuildingExpansionModel(pdag.Model):
         raise ValueError(
             f"Invalid action '{action}' for building state '{building_state}'"
         )
+
+    demand_model = DemandModel.to_relationship(
+        "demand_model",
+        inputs={
+            DemandModel.start_time.ref(): demand_start_time.ref(),
+            DemandModel.ramp_up_time.ref(): demand_ramp_up_time.ref(),
+            DemandModel.demand_max.ref(): demand_max.ref(),
+        },
+        outputs={
+            DemandModel.demand.ref(all_time_steps=True): demand.ref(
+                all_time_steps=True
+            ),
+        },
+    )
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
@@ -157,6 +284,8 @@ class BuildingExpansionModel(pdag.Model):
         action: Annotated[TAction, action.ref()],
         action_cost: Annotated[Mapping[TAction, float], action_cost.ref()],
     ) -> Annotated[float, cost.ref()]:
+        if action == "tear-down-and-build-opt-57":
+            return action_cost["tear-down"] + action_cost["build-opt-57"]
         return action_cost[action]
 
     @pdag.relationship

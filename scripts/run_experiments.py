@@ -41,7 +41,17 @@ def run_experiments(
     print(scenario_parameters)
     print("Decision parameters:")
     print(decision_parameters)
-    assert set(scenario_parameters) | set(decision_parameters) == set(input_parameters)
+    if set(scenario_parameters) | set(decision_parameters) != set(input_parameters):
+        only_in_scenario_or_decision = (
+            set(scenario_parameters) | set(decision_parameters)
+        ) - set(input_parameters)
+        only_in_input = set(input_parameters) - (
+            set(scenario_parameters) | set(decision_parameters)
+        )
+        raise ValueError(
+            f"Found parameters only in scenario or decision: {only_in_scenario_or_decision} "
+            f"and only in input: {only_in_input}"
+        )
 
     rng = np.random.default_rng(seed=np_rng_seed)
     scenarios = distance_constrained_sampling(
@@ -76,7 +86,7 @@ if __name__ == "__main__":
     run_experiments(
         n_scenarios=1_000,
         n_decisions=1_000,
-        n_time_steps=5,
+        n_time_steps=15,
         np_rng_seed=42,
         uniform_in_distance=True,
     )

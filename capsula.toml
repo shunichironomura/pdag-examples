@@ -1,4 +1,4 @@
-vault-dir = "/Users/nomura/Library/CloudStorage/Dropbox-Nakasuka_PJ/Nomura Shunichiro/capsula-vaults/otv-xlrm"
+vault-dir = "/Users/nomura/Library/CloudStorage/Dropbox-Nakasuka_PJ/Nomura Shunichiro/capsula-vaults/pdag-examples"
 
 [pre-run]
 contexts = [
