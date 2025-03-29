@@ -76,6 +76,7 @@ if __name__ == "__main__":
     run_experiments(
         n_scenarios=1_000,
         n_decisions=1_000,
+        n_time_steps=5,
         np_rng_seed=42,
         uniform_in_distance=True,
     )
