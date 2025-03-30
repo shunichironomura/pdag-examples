@@ -349,7 +349,7 @@ def _(df_hou, results_dir):
 
 
 @app.cell
-def _(df_hou):
+def _(df_hou, mo):
     import seaborn as sns
     import matplotlib.pyplot as plt
 
@@ -389,7 +389,7 @@ def _(df_hou):
     _ax.set_ylabel("NPVMin")
     _ax.grid()
 
-    plt.show()
+    mo.mpl.interactive(plt.gcf())
     return plt, sns
 
 
