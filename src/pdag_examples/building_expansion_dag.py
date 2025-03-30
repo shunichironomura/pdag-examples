@@ -5,9 +5,30 @@ TPolicy = Literal[
     "do-nothing", "build-opt-57", "build-opt-33-and-rebuild", "build-exp-33-and-expand"
 ]
 TAction = Literal[
-    "do-nothing", "build-opt-33", "build-opt-57", "tear-down", "expand", "build-exp-33"
+    "do-nothing",
+    "build-opt-33",
+    "build-opt-57",
+    "tear-down-and-build-opt-57",
+    "expand",
+    "build-exp-33",
 ]
 TBuildingState = Literal["not-built", "opt-33", "opt-57", "exp-33", "exp-57"]
+
+
+class DemandModel(pdag.Model):
+    demand = pdag.RealParameter("demand", is_time_series=True)
+    start_time = pdag.RealParameter("start_time")
+    ramp_up_time = pdag.RealParameter("ramp_up_time")
+    demand_max = pdag.RealParameter("demand_max")
+
+    @pdag.relationship
+    @staticmethod
+    def demand_model(
+        start_time: Annotated[float, start_time.ref()],
+        ramp_up_time: Annotated[float, ramp_up_time.ref()],
+        demand_max: Annotated[float, demand_max.ref()],
+        n_time_steps: Annotated[int, pdag.ExecInfo("n_time_steps")],
+    ) -> Annotated[list[float], demand.ref(all_time_steps=True)]: ...
 
 
 class BuildingExpansionModel(pdag.Model):
@@ -17,24 +38,35 @@ class BuildingExpansionModel(pdag.Model):
     BUILDING_STATES: ClassVar[tuple[TBuildingState, ...]] = get_args(TBuildingState)
 
     # Exogenous parameters
-    demand = pdag.RealParameter("demand", is_time_series=True, metadata={"XLRM": "X"})
-    revenue_per_floor = pdag.RealParameter("revenue_per_floor", metadata={"XLRM": "X"})
-    discount_rate = pdag.RealParameter("discount_rate", metadata={"XLRM": "X"})
+    demand_start_time = pdag.RealParameter("demand_start_time")
+    demand_ramp_up_time = pdag.RealParameter("demand_ramp_up_time")
+    demand_max = pdag.RealParameter("demand_max")
+    # Demand is calculated in the DemandModel class
+    demand = pdag.RealParameter(
+        "demand",
+        is_time_series=True,
+    )
+    revenue_per_floor = pdag.RealParameter("revenue_per_floor")
+    discount_rate = pdag.RealParameter("discount_rate")
+    action_cost = pdag.Mapping(
+        "action_cost",
+        {
+            "do-nothing": pdag.RealParameter(...),
+            "build-opt-33": pdag.RealParameter(...),
+            "build-opt-57": pdag.RealParameter(...),
+            "tear-down": pdag.RealParameter(...),
+            "expand": pdag.RealParameter(...),
+            "build-exp-33": pdag.RealParameter(...),
+        },
+    )
 
     # Decision parameters
     policy = pdag.CategoricalParameter(
         "policy",
         POLICIES,
-        metadata={"XLRM": "L"},
     )
-    rebuild_threshold = pdag.RealParameter(
-        "rebuild_threshold",
-        metadata={"XLRM": "L"},
-    )
-    expand_threshold = pdag.RealParameter(
-        "expand_threshold",
-        metadata={"XLRM": "L"},
-    )
+    rebuild_threshold = pdag.RealParameter("rebuild_threshold")
+    expand_threshold = pdag.RealParameter("expand_threshold")
 
     # Calculated parameters
     action = pdag.CategoricalParameter(
@@ -47,13 +79,9 @@ class BuildingExpansionModel(pdag.Model):
         BUILDING_STATES,
         is_time_series=True,
     )
-    action_cost = pdag.Mapping(
-        "action_cost",
-        {action: pdag.RealParameter(...) for action in action.categories},
-    )
+
     revenue = pdag.RealParameter("revenue", is_time_series=True)
     cost = pdag.RealParameter("cost", is_time_series=True)
-    discount_rate = pdag.RealParameter("discount_rate")
     npv = pdag.RealParameter("npv")
 
     @pdag.relationship(at_each_time_step=True)
@@ -67,6 +95,12 @@ class BuildingExpansionModel(pdag.Model):
         expand_threshold: Annotated[float, expand_threshold.ref()],
     ) -> Annotated[TAction, action.ref()]: ...
 
+    @pdag.relationship
+    @staticmethod
+    def initial_state() -> Annotated[
+        TBuildingState, building_state.ref(initial=True)
+    ]: ...
+
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
     def state_transition_model(
@@ -74,6 +108,20 @@ class BuildingExpansionModel(pdag.Model):
         building_state: Annotated[TBuildingState, building_state.ref()],
         action: Annotated[TAction, action.ref()],
     ) -> Annotated[TBuildingState, building_state.ref(next=True)]: ...
+
+    demand_model = DemandModel.to_relationship(
+        "demand_model",
+        inputs={
+            DemandModel.start_time.ref(): demand_start_time.ref(),
+            DemandModel.ramp_up_time.ref(): demand_ramp_up_time.ref(),
+            DemandModel.demand_max.ref(): demand_max.ref(),
+        },
+        outputs={
+            DemandModel.demand.ref(all_time_steps=True): demand.ref(
+                all_time_steps=True
+            ),
+        },
+    )
 
     @pdag.relationship(at_each_time_step=True)
     @staticmethod
