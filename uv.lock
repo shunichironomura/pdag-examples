@@ -351,8 +351,8 @@ wheels = [
 
 [[package]]
 name = "pdag"
-version = "0.0.10"
-source = { editable = "../pdag" }
+version = "0.0.11"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asttokens" },
     { name = "numpy" },
@@ -364,51 +364,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "asttokens", specifier = ">=3.0.0" },
-    { name = "numpy", specifier = ">=1.24" },
-    { name = "polars", specifier = ">=1.24.0" },
-    { name = "pydot", specifier = ">=3.0.4" },
-    { name = "rich", specifier = ">=13.9.4" },
-    { name = "tqdm", specifier = ">=4.67.1" },
-    { name = "typer", specifier = ">=0.15.2" },
-    { name = "typing-extensions", specifier = ">=4.12.2" },
-    { name = "watchfiles", specifier = ">=1.0.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage", specifier = ">=7.6.12" },
-    { name = "deptry", specifier = ">=0.23.0" },
-    { name = "import-linter", specifier = ">=2.2" },
-    { name = "mypy", specifier = ">=1.15.0" },
-    { name = "pandas-stubs", specifier = ">=2.2.3.241126" },
-    { name = "pip-licenses", specifier = ">=5.0.0" },
-    { name = "pre-commit", specifier = ">=4.1.0" },
-    { name = "pyright", specifier = ">=1.1.396" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "ruff", specifier = ">=0.9.9" },
-    { name = "types-tqdm", specifier = ">=4.67.0.20250301" },
-]
-license = [{ name = "pip-licenses", specifier = ">=5.0.0" }]
-linting = [
-    { name = "deptry", specifier = ">=0.23.0" },
-    { name = "import-linter", specifier = ">=2.2" },
-]
-ruff = [{ name = "ruff", specifier = ">=0.9.9" }]
-testing = [
-    { name = "coverage", specifier = ">=7.6.12" },
-    { name = "pytest", specifier = ">=8.3.5" },
-]
-typing = [
-    { name = "coverage", specifier = ">=7.6.12" },
-    { name = "mypy", specifier = ">=1.15.0" },
-    { name = "pandas-stubs", specifier = ">=2.2.3.241126" },
-    { name = "pyright", specifier = ">=1.1.396" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "types-tqdm", specifier = ">=4.67.0.20250301" },
+sdist = { url = "https://files.pythonhosted.org/packages/98/4e/bdec0d876c901f6e5cff66ff1866b91a75e8d2eb8d76308e871fe8d78eed/pdag-0.0.11.tar.gz", hash = "sha256:45125ada4602eb26fe1184e4bd00c5087a3968d7ba0ade698982fba703a34542", size = 61735 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/93/49adbf84de5d3512494ef1b12347137f3c6a453144340247b7472b7e8a10/pdag-0.0.11-py3-none-any.whl", hash = "sha256:f87c961e24f9095aa123ba424a5b6cb272dc277c3e54dafe35670c10156b790a", size = 34850 },
 ]
 
 [[package]]
@@ -429,7 +387,7 @@ requires-dist = [
     { name = "capsula", specifier = "==0.7.0" },
     { name = "fastparquet", specifier = ">=2024.11.0" },
     { name = "marimo", specifier = ">=0.11.31" },
-    { name = "pdag", editable = "../pdag" },
+    { name = "pdag", specifier = "==0.0.11" },
     { name = "polars", specifier = ">=1.26.0" },
     { name = "pyarrow", specifier = ">=19.0.1" },
 ]
