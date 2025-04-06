@@ -351,7 +351,7 @@ wheels = [
 
 [[package]]
 name = "pdag"
-version = "0.0.11"
+version = "0.0.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asttokens" },
@@ -364,9 +364,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/98/4e/bdec0d876c901f6e5cff66ff1866b91a75e8d2eb8d76308e871fe8d78eed/pdag-0.0.11.tar.gz", hash = "sha256:45125ada4602eb26fe1184e4bd00c5087a3968d7ba0ade698982fba703a34542", size = 61735 }
+sdist = { url = "https://files.pythonhosted.org/packages/44/16/eba3868a0771d0373a3206499d93590cc59c04babcb223fd80e80b6cf751/pdag-0.0.12.tar.gz", hash = "sha256:3759a72bcc651dc267a7902e9dc5ca15841717c14c92210e159d2b8e25211568", size = 91060 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/93/49adbf84de5d3512494ef1b12347137f3c6a453144340247b7472b7e8a10/pdag-0.0.11-py3-none-any.whl", hash = "sha256:f87c961e24f9095aa123ba424a5b6cb272dc277c3e54dafe35670c10156b790a", size = 34850 },
+    { url = "https://files.pythonhosted.org/packages/4a/94/0942c5bbd07b99d9b46b1058f312e1aea4d1b289ebd60bf08ef5f5dcfde4/pdag-0.0.12-py3-none-any.whl", hash = "sha256:241b98a3449e504e025ebfe0b2d185bcfc077bcef9ea6356a25aec2f5eed9810", size = 40220 },
 ]
 
 [[package]]
@@ -387,7 +387,7 @@ requires-dist = [
     { name = "capsula", specifier = "==0.7.0" },
     { name = "fastparquet", specifier = ">=2024.11.0" },
     { name = "marimo", specifier = ">=0.11.31" },
-    { name = "pdag", specifier = "==0.0.11" },
+    { name = "pdag", specifier = "==0.0.12" },
     { name = "polars", specifier = ">=1.26.0" },
     { name = "pyarrow", specifier = ">=19.0.1" },
 ]
