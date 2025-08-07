@@ -11,7 +11,7 @@ dependencies = [
     "capsula==0.8.0",
     "fastparquet>=2024.11.0",
     "marimo>=0.11.31",
-    "pdag==0.0.14",
+    "pdag==0.0.15",
     "polars>=1.26.0",
     "pyarrow>=19.0.1",
 ]
