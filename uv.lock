@@ -414,7 +414,7 @@ wheels = [
 
 [[package]]
 name = "pdag"
-version = "0.0.16"
+version = "0.0.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asttokens" },
@@ -431,9 +431,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2f/0c/7d8bda5ba6f7389d29ddecec8f13f6a423b153cf1662e2cf3156c78db8b9/pdag-0.0.16.tar.gz", hash = "sha256:2acc8934a93505f270f9fc73a9668636473a2f28d4dffea01efa7c9701ae70a4", size = 36454, upload-time = "2026-02-04T03:59:46.914Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/7e/1189aa0abc387cdf3b387ca7b3191c444bb2da21942b3a6a7491319eeb93/pdag-0.0.17.tar.gz", hash = "sha256:82e1d03ba7000cadce3433c8aea48415a67b2cc273750b12ebfb6d2a5e15e6de", size = 36921, upload-time = "2026-09-24T06:27:33.151Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/5f/54f56588b6f562b99fab5c6c17d197a6f44d8fb3bc3d9af489db5f0a3a8b/pdag-0.0.16-py3-none-any.whl", hash = "sha256:c4d9a01ccb8cfe8588d1b5d4e8adcda196d01fff8e5cbd588b6489b125d8e476", size = 51803, upload-time = "2026-02-04T03:59:45.208Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/2f/c0baa6ff24a2ae012f1dbe7b16762c3481ed27a34d1355dd14844aed8469/pdag-0.0.17-py3-none-any.whl", hash = "sha256:f08410b0530c862468ca40461f9bed28e72310cbd1645d54b61ec9f0bc1d13d8", size = 51801, upload-time = "2026-09-24T06:27:31.996Z" },
 ]
 
 [[package]]
@@ -454,7 +454,7 @@ requires-dist = [
     { name = "capsula", specifier = "==0.8.0" },
     { name = "fastparquet", specifier = ">=2024.11.0" },
     { name = "marimo", specifier = ">=0.11.31" },
-    { name = "pdag", specifier = "==0.0.16" },
+    { name = "pdag", specifier = "==0.0.17" },
     { name = "polars", specifier = ">=1.26.0" },
     { name = "pyarrow", specifier = ">=19.0.1" },
 ]
